@@ -201,5 +201,5 @@ func main() {
 	foodleContext := initContext()
 	http.HandleFunc("/", foodleContext.handleAll)
 	http.HandleFunc("/vote", foodleContext.handleVote)
-	http.ListenAndServe(*listen, nil)
+	fmt.Println(http.ListenAndServe(*listen, nil))
 }
