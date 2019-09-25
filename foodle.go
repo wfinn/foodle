@@ -164,9 +164,8 @@ func (context *Context) handleVote(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, &http.Cookie{Name: "secret", Value: secret, HttpOnly: true})
 		}
 		context.votes[name] = food
-		http.Redirect(w, r, "/", 302)
-		return
 	}
+	http.Redirect(w, r, "/", 302)
 }
 
 func (context *Context) handleAll(w http.ResponseWriter, r *http.Request) {
