@@ -126,14 +126,16 @@ func randomString(l int) string {
 }
 
 type Context struct {
-	votes map[string]string
-	users map[string]string
+	votes       map[string]string
+	users       map[string]string
+	lastRequest time.Time
 }
 
 func initContext() *Context {
 	return &Context{
-		votes: make(map[string]string),
-		users: make(map[string]string),
+		votes:       make(map[string]string),
+		users:       make(map[string]string),
+		lastRequest: time.Now(),
 	}
 }
 
@@ -169,17 +171,16 @@ func (context *Context) handleVote(w http.ResponseWriter, r *http.Request) {
 
 func (context *Context) handleAll(w http.ResponseWriter, r *http.Request) {
 	if !strings.Contains(r.Header.Get("Accept"), "text/html") {
-		return //prevent favicon.ico from messing with cookies
+		return
 	}
 	t, err := template.New("foodle").Parse(foodle)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 	}
-	lastRequest := time.Now()
-	if lastRequest.Add(time.Hour * 8).Before(time.Now()) {
+	if context.lastRequest.Add(time.Hour * 8).Before(time.Now()) {
 		context.votes = make(map[string]string)
 	}
-	lastRequest = time.Now()
+	context.lastRequest = time.Now()
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("X-Frame-Options", "DENY")
 	name := ""
@@ -196,7 +197,7 @@ func (context *Context) handleAll(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	listen := flag.String("http", ":8080", "http url to listen to")
-        flag.Parse()
+	flag.Parse()
 	rand.Seed(time.Now().UTC().UnixNano())
 	foodleContext := initContext()
 	http.HandleFunc("/", foodleContext.handleAll)
