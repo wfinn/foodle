@@ -20,7 +20,7 @@ const foodle = `{{define "T"}}
     <title>Foodle</title>
     	<style>
 			body {
-				font-size: 30px;
+				font-size: 20px;
 				background-color: #dddddd;
 				font-family: sans-serif;
 			}
@@ -28,7 +28,7 @@ const foodle = `{{define "T"}}
 			table {
 				border-collapse: collapse;
 				border: 1px solid;
-				font-size: 35px;
+				font-size: 25px;
 				width: auto;
 			}
 
@@ -38,7 +38,7 @@ const foodle = `{{define "T"}}
 			}
 
 			input {
-				font-size: 30px;
+				font-size: 20px;
 			}
 
 			tr:nth-child(even) {background-color: #cccccc;}
@@ -166,6 +166,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 	}
 	http.Redirect(w, r, "/", 302)
 }
+
 func readJsonMap(filename string) (map[string]string, error) {
 	dataJson, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -187,6 +188,7 @@ func writeJsonMap(filename string, data map[string]string) {
 	ioutil.WriteFile(filename, []byte(jsonString), 664)
 
 }
+
 func handleAll() func(w http.ResponseWriter, r *http.Request) {
 	t, err := template.New("foodle").Parse(foodle)
 	if err != nil {
@@ -196,22 +198,26 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Accept"), "text/html") {
 			return
 		}
-		votes, _ := readJsonMap("votes.json")
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("X-Frame-Options", "DENY")
+		votes, err := readJsonMap("votes.json")
+		if err != nil {
+			return
+		}
+
 		name := ""
 		if nameCookie, err := r.Cookie("name"); err == nil && len(nameCookie.Value) > 0 {
 			name = nameCookie.Value
 		}
 		token := randomString(32)
 		http.SetCookie(w, &http.Cookie{Name: "token", Value: token, HttpOnly: true})
-
 		res := Result{Name: name, Votes: votes, MostUsed: getMostUsedValue(votes), Token: token}
 		if err := t.ExecuteTemplate(w, "T", res); err != nil {
 			fmt.Printf("Error: %s\n", err.Error())
 		}
 	}
 }
+
 func main() {
 	addr := flag.String("addr", ":8080", "addr to listen to")
 	flag.Parse()
