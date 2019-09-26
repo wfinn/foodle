@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -125,21 +127,7 @@ func randomString(l int) string {
 	return string(bytes)
 }
 
-type Context struct {
-	votes       map[string]string
-	users       map[string]string
-	lastRequest time.Time
-}
-
-func initContext() *Context {
-	return &Context{
-		votes:       make(map[string]string),
-		users:       make(map[string]string),
-		lastRequest: time.Now(),
-	}
-}
-
-func (context *Context) handleVote(w http.ResponseWriter, r *http.Request) {
+func handleVote(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	food := r.URL.Query().Get("food")
 	queryToken := r.URL.Query().Get("token")
@@ -148,58 +136,87 @@ func (context *Context) handleVote(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("CSRF"))
 		return
 	}
-
+	votes, err := readJsonMap("votes.json")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	users, err := readJsonMap("users.json")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 	if len(name) > 0 && len(food) > 0 {
-		if len(context.users[name]) > 0 {
+		if len(users[name]) > 0 {
 			secretCookie, err := r.Cookie("secret")
-			if err != nil || len(secretCookie.Value) == 0 || secretCookie.Value != context.users[name] {
+			if err != nil || len(secretCookie.Value) == 0 || secretCookie.Value != users[name] {
 				w.WriteHeader(403)
 				w.Write([]byte("SECRET"))
 				return
 			}
 		} else {
 			secret := randomString(32)
-			context.users[name] = secret
+			users[name] = secret
 			http.SetCookie(w, &http.Cookie{Name: "name", Value: name, HttpOnly: true})
 			http.SetCookie(w, &http.Cookie{Name: "secret", Value: secret, HttpOnly: true})
 		}
-		context.votes[name] = food
+		votes[name] = food
+		writeJsonMap("users.json", users)
+		writeJsonMap("votes.json", votes)
 	}
 	http.Redirect(w, r, "/", 302)
 }
+func readJsonMap(filename string) (map[string]string, error) {
+	dataJson, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	data := make(map[string]string)
+	if err = json.Unmarshal(dataJson, &data); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
 
-func (context *Context) handleAll(w http.ResponseWriter, r *http.Request) {
-	if !strings.Contains(r.Header.Get("Accept"), "text/html") {
+func writeJsonMap(filename string, data map[string]string) {
+	jsonString, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println(err)
 		return
 	}
+	ioutil.WriteFile(filename, []byte(jsonString), 664)
+
+}
+func handleAll() func(w http.ResponseWriter, r *http.Request) {
 	t, err := template.New("foodle").Parse(foodle)
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 	}
-	if context.lastRequest.Add(time.Hour * 8).Before(time.Now()) {
-		context.votes = make(map[string]string)
-	}
-	context.lastRequest = time.Now()
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("X-Frame-Options", "DENY")
-	name := ""
-	if nameCookie, err := r.Cookie("name"); err == nil && len(nameCookie.Value) > 0 {
-		name = nameCookie.Value
-	}
-	token := randomString(32)
-	http.SetCookie(w, &http.Cookie{Name: "token", Value: token, HttpOnly: true})
-	res := Result{Name: name, Votes: context.votes, MostUsed: getMostUsedValue(context.votes), Token: token}
-	if err = t.ExecuteTemplate(w, "T", res); err != nil {
-		fmt.Printf("Error: %s\n", err.Error())
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !strings.Contains(r.Header.Get("Accept"), "text/html") {
+			return
+		}
+		votes, _ := readJsonMap("votes.json")
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("X-Frame-Options", "DENY")
+		name := ""
+		if nameCookie, err := r.Cookie("name"); err == nil && len(nameCookie.Value) > 0 {
+			name = nameCookie.Value
+		}
+		token := randomString(32)
+		http.SetCookie(w, &http.Cookie{Name: "token", Value: token, HttpOnly: true})
+
+		res := Result{Name: name, Votes: votes, MostUsed: getMostUsedValue(votes), Token: token}
+		if err := t.ExecuteTemplate(w, "T", res); err != nil {
+			fmt.Printf("Error: %s\n", err.Error())
+		}
 	}
 }
-
 func main() {
-	listen := flag.String("http", ":8080", "http url to listen to")
+	addr := flag.String("addr", ":8080", "addr to listen to")
 	flag.Parse()
 	rand.Seed(time.Now().UTC().UnixNano())
-	foodleContext := initContext()
-	http.HandleFunc("/", foodleContext.handleAll)
-	http.HandleFunc("/vote", foodleContext.handleVote)
-	fmt.Println(http.ListenAndServe(*listen, nil))
+	http.HandleFunc("/", handleAll())
+	http.HandleFunc("/vote", handleVote)
+	fmt.Println(http.ListenAndServe(*addr, nil))
 }
