@@ -119,9 +119,13 @@ func randInt(min int, max int) int {
 	return min + rand.Intn(max-min)
 }
 
-func randomString(l int) string {
-	bytes := make([]byte, l)
-	for i := 0; i < l; i++ {
+func getVotesFilename() string {
+	return strings.Split(time.Now().String(), " ")[0] + "-votes.json"
+}
+
+func randomString(len int) string {
+	bytes := make([]byte, len)
+	for i := 0; i < len; i++ {
 		bytes[i] = byte(randInt('A', 'Z'+1))
 	}
 	return string(bytes)
@@ -136,7 +140,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("CSRF"))
 		return
 	}
-	votes, err := readJsonMap("votes.json")
+	votes, err := readJsonMap(getVotesFilename())
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -162,7 +166,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		}
 		votes[name] = food
 		writeJsonMap("users.json", users)
-		writeJsonMap("votes.json", votes)
+		writeJsonMap(getVotesFilename(), votes)
 	}
 	http.Redirect(w, r, "/", 302)
 }
@@ -170,7 +174,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 func readJsonMap(filename string) (map[string]string, error) {
 	dataJson, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, err
+		return make(map[string]string), nil
 	}
 	data := make(map[string]string)
 	if err = json.Unmarshal(dataJson, &data); err != nil {
@@ -185,7 +189,7 @@ func writeJsonMap(filename string, data map[string]string) {
 		fmt.Println(err)
 		return
 	}
-	ioutil.WriteFile(filename, []byte(jsonString), 664)
+	ioutil.WriteFile(filename, []byte(jsonString), 0644)
 
 }
 
@@ -200,11 +204,11 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("X-Frame-Options", "DENY")
-		votes, err := readJsonMap("votes.json")
+		votes, err := readJsonMap(getVotesFilename())
 		if err != nil {
+			fmt.Println(err)
 			return
 		}
-
 		name := ""
 		if nameCookie, err := r.Cookie("name"); err == nil && len(nameCookie.Value) > 0 {
 			name = nameCookie.Value
