@@ -213,7 +213,12 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 		if nameCookie, err := r.Cookie("name"); err == nil && len(nameCookie.Value) > 0 {
 			name = nameCookie.Value
 		}
-		token := randomString(32)
+		token := ""
+		if tokenCookie, err := r.Cookie("token"); err == nil && len(tokenCookie.Value) == 32 {
+			token = tokenCookie.Value
+		} else {
+			token = randomString(32)
+		}
 		http.SetCookie(w, &http.Cookie{Name: "token", Value: token, HttpOnly: true})
 		res := Result{Name: name, Votes: votes, MostUsed: getMostUsedValue(votes), Token: token}
 		if err := t.ExecuteTemplate(w, "T", res); err != nil {
