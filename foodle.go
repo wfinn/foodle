@@ -139,7 +139,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 	queryToken := r.URL.Query().Get("token")
 	if cookieToken, err := r.Cookie("token"); err != nil || queryToken != cookieToken.Value {
 		w.WriteHeader(403)
-		w.Write([]byte("CSRF"))
+		w.Write([]byte("csrf check failed"))
 		return
 	}
 	votes, err := readJsonMap(getVotesFilename())
@@ -157,7 +157,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 			secretCookie, err := r.Cookie("secret")
 			if err != nil || len(secretCookie.Value) == 0 || secretCookie.Value != users[name] {
 				w.WriteHeader(403)
-				w.Write([]byte("SECRET"))
+				w.Write([]byte("secret is incorrect / name already taken"))
 				return
 			}
 		} else {
