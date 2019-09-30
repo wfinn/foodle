@@ -122,7 +122,7 @@ func randInt(min int, max int) int {
 }
 
 func getVotesFilename() string {
-	return strings.Split(time.Now().String(), " ")[0] + "-votes.json"
+	return "votes-" + strings.Split(time.Now().String(), " ")[0] + ".json"
 }
 
 func randomString(len int) string {
