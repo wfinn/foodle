@@ -70,15 +70,17 @@ const foodle = `{{define "T"}}
 
 			<form action="/vote" method="GET">
 				<input name="token" type="hidden" value="{{$.Token}}">
-				<input name="name" type="text" {{if $.Name}}value="{{$.Name}}"{{end}}placeholder="your name"><br>
-				<input name="food" type="search" list="restaurants" placeholder="your fav food"><br>
-				<datalist id="restaurants">
-					<option value="Pizza-Scheune" />
+				<input name="name" type="text"{{if $.Name}} value="{{$.Name}}"{{end}} placeholder="your name"><br>
+				<input name="food" type="search" list="foods" placeholder="your fav food"><br>
+				<datalist id="foods">
+					<option value="Pizza" />
+					<option value="Burger" />
 					<option value="Thai" />
+					<option value="China Nudeln" />
 					<option value="Pho Co" />
 					<option value="Soy" />
-					<option value="Pop Chicken" />
-					<option value="Kiez Falafel" />
+					<option value="Bibi Mix" />
+					<option value="Falafel" />
 					<option value="Döner" />
 					<option value="Mikrowelle" />
 				</datalist>
