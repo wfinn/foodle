@@ -195,6 +195,14 @@ func writeJsonMap(filename string, data map[string]string) {
 
 }
 
+func getCookieValue(r *http.Request, cookiename string) string {
+	value := ""
+	if cookie, err := r.Cookie(cookiename); err == nil && len(cookie.Value) > 0 {
+		value = cookie.Value
+	}
+	return value
+}
+
 func handleAll() func(w http.ResponseWriter, r *http.Request) {
 	t, err := template.New("foodle").Parse(foodle)
 	if err != nil {
@@ -211,14 +219,9 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		name := ""
-		if nameCookie, err := r.Cookie("name"); err == nil && len(nameCookie.Value) > 0 {
-			name = nameCookie.Value
-		}
-		token := ""
-		if tokenCookie, err := r.Cookie("token"); err == nil && len(tokenCookie.Value) == 32 {
-			token = tokenCookie.Value
-		} else {
+		name := getCookieValue(r, "name")
+		token := getCookieValue(r, "token")
+		if len(token) != 32 {
 			token = randomString(32)
 		}
 		http.SetCookie(w, &http.Cookie{Name: "token", Value: token, HttpOnly: true})
