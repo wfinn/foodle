@@ -138,8 +138,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 	food := r.URL.Query().Get("food")
 	queryToken := r.URL.Query().Get("token")
 	if cookieToken, err := r.Cookie("token"); err != nil || queryToken != cookieToken.Value {
-		w.WriteHeader(403)
-		w.Write([]byte("csrf check failed"))
+		http.Error(w, "csrf check failed", http.StatusForbidden)
 		return
 	}
 	votes, err := readJsonMap(getVotesFilename())
@@ -156,8 +155,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		if len(users[name]) > 0 {
 			secretCookie, err := r.Cookie("secret")
 			if err != nil || len(secretCookie.Value) == 0 || secretCookie.Value != users[name] {
-				w.WriteHeader(403)
-				w.Write([]byte("secret is incorrect / name already taken"))
+				http.Error(w, "secret is incorrect / name already taken", http.StatusForbidden)
 				return
 			}
 		} else {
@@ -170,7 +168,7 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		writeJsonMap("users.json", users)
 		writeJsonMap(getVotesFilename(), votes)
 	}
-	http.Redirect(w, r, "/", 302)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func readJsonMap(filename string) (map[string]string, error) {
