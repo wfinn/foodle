@@ -101,20 +101,19 @@ type Result struct {
 	Token    string
 }
 
-func getMostUsedValue(m map[string]string) string {
+func getMostUsedValue(m map[string]string) (mostUsed string) {
 	counts := make(map[string]int)
 	for _, v := range m {
 		counts[v] = counts[v] + 1
 	}
 	max := 0
-	mostUsed := ""
 	for k, _ := range counts {
 		if counts[k] > max {
 			max = counts[k]
 			mostUsed = k
 		}
 	}
-	return mostUsed
+	return
 }
 
 func randInt(min int, max int) int {
@@ -171,16 +170,13 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-func readJsonMap(filename string) (map[string]string, error) {
+func readJsonMap(filename string) (data map[string]string, err error) {
 	dataJson, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return make(map[string]string), nil
+		return data, nil
 	}
-	data := make(map[string]string)
-	if err = json.Unmarshal(dataJson, &data); err != nil {
-		return nil, err
-	}
-	return data, nil
+	err = json.Unmarshal(dataJson, &data)
+	return
 }
 
 func writeJsonMap(filename string, data map[string]string) {
@@ -193,12 +189,11 @@ func writeJsonMap(filename string, data map[string]string) {
 
 }
 
-func getCookieValue(r *http.Request, cookiename string) string {
-	value := ""
+func getCookieValue(r *http.Request, cookiename string) (value string) {
 	if cookie, err := r.Cookie(cookiename); err == nil && len(cookie.Value) > 0 {
 		value = cookie.Value
 	}
-	return value
+	return
 }
 
 func handleAll() func(w http.ResponseWriter, r *http.Request) {
