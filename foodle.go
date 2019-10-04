@@ -134,7 +134,7 @@ func randomString(len int) string {
 }
 
 func handleVote(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Query().Get("name")
+	name := strings.TrimSpace(r.URL.Query().Get("name"))
 	food := r.URL.Query().Get("food")
 	queryToken := r.URL.Query().Get("token")
 	if cookieToken, err := r.Cookie("token"); err != nil || queryToken != cookieToken.Value {
@@ -219,7 +219,7 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		name := getCookieValue(r, "name")
+		name := strings.TrimSpace(getCookieValue(r, "name"))
 		token := getCookieValue(r, "token")
 		if len(token) != 32 {
 			token = randomString(32)
