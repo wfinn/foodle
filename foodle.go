@@ -170,13 +170,14 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
-func readJsonMap(filename string) (data map[string]string, err error) {
+func readJsonMap(filename string) (map[string]string, error) {
+	data := make(map[string]string)
 	dataJson, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return data, nil
 	}
 	err = json.Unmarshal(dataJson, &data)
-	return
+	return data, nil
 }
 
 func writeJsonMap(filename string, data map[string]string) {
