@@ -1,11 +1,10 @@
 # Foodle
 Maybe this helps to decide what to eat...
 
-Foodle is a simple app, tho there are some things which need documentation.
+## Static Files
+Static Files will get compiled into the binary.
+If you want to edit static files, edit them, run _go generate_ and commit _static.go_ with your changes.
+To add a static file edit _filenames_ in _static/genstatic.go_
 ## "Accounts"
 When a user makes her first vote, her name will be tied to a secret cookie.
 Deleting the Cookie will result in losing the "account".
-## CSRF
-Foodle generates a random token for every browser.
-The token will be set as Cookie and appear as parameter in votes.
-Only if those 2 match, a vote is valid.

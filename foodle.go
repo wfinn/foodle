@@ -1,3 +1,4 @@
+//go:generate go run static/genstatic.go
 package main
 
 import (
@@ -12,93 +13,10 @@ import (
 	"time"
 )
 
-const foodle = `{{define "T"}}
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <title>Foodle</title>
-    	<style>
-			body {
-				font-size: 20px;
-				background-color: #dddddd;
-				font-family: sans-serif;
-			}
-
-			table {
-				border-collapse: collapse;
-				border: 1px solid;
-				font-size: 25px;
-				width: auto;
-			}
-
-			th, td {
-				text-align: left;
-				padding: 8px;
-			}
-
-			input {
-				font-size: 20px;
-			}
-
-			tr:nth-child(even) {background-color: #cccccc;}
-		</style>
-</head>
-
-<body>
-    <center>
-    	<div style="width:50%; height:auto;">
-	        <h1>Foodle</h1>
-	        {{if .Votes}}
-	        <h2>Most votes for: {{.MostUsed}}</h2>
-	        <table>
-	            <tr>
-	                <th>Name</th>
-	                <th>Food</th>
-	            </tr>
-	            {{range $key, $value := .Votes}}
-	            <tr>
-	                <td>{{$key}}</td>
-	                <td>{{if $.Name}}<a href='/vote?name={{$.Name}}&food={{$value}}&token={{$.Token}}'>{{$value}}</a>{{else}}{{$value}}{{end}}</td>
-	            </tr>
-	            {{end}}
-	        </table>
-	        <br>
-	        {{else}}
-	        <h2>No votes yet</h2>
-	        {{end}}
-
-			<form action="/vote" method="GET">
-				<input name="token" type="hidden" value="{{$.Token}}">
-				<input name="name" type="text"{{if $.Name}} value="{{$.Name}}"{{end}} placeholder="your name"><br>
-				<input name="food" type="search" list="foods" placeholder="your fav food"><br>
-				<datalist id="foods">
-					<option value="Pizza" />
-					<option value="Burger" />
-					<option value="Thai" />
-					<option value="China Nudeln" />
-					<option value="Pho Co" />
-					<option value="Soy" />
-					<option value="Bibi Mix" />
-					<option value="Falafel" />
-					<option value="Döner" />
-					<option value="Mikrowelle" />
-				</datalist>
-				<input type="submit" value="Vote">
-			</form>
-		</div>
-    </center>
-</body>
-
-</html>
-{{end}}
-`
-
 type Result struct {
 	Name     string
 	Votes    map[string]string
 	MostUsed string
-	Token    string
 }
 
 func getMostUsedValue(m map[string]string) (mostUsed string) {
@@ -107,7 +25,7 @@ func getMostUsedValue(m map[string]string) (mostUsed string) {
 		counts[v] = counts[v] + 1
 	}
 	max := 0
-	for k, _ := range counts {
+	for k := range counts {
 		if counts[k] > max {
 			max = counts[k]
 			mostUsed = k
@@ -116,7 +34,7 @@ func getMostUsedValue(m map[string]string) (mostUsed string) {
 	return
 }
 
-func randInt(min int, max int) int {
+func randInt(min, max int) int {
 	return min + rand.Intn(max-min)
 }
 
@@ -135,11 +53,6 @@ func randomString(len int) string {
 func handleVote(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.URL.Query().Get("name"))
 	food := r.URL.Query().Get("food")
-	queryToken := r.URL.Query().Get("token")
-	if cookieToken, err := r.Cookie("token"); err != nil || queryToken != cookieToken.Value {
-		http.Error(w, "csrf check failed", http.StatusForbidden)
-		return
-	}
 	votes, err := readJsonMap(getVotesFilename())
 	if err != nil {
 		fmt.Println(err)
@@ -198,7 +111,7 @@ func getCookieValue(r *http.Request, cookiename string) (value string) {
 }
 
 func handleAll() func(w http.ResponseWriter, r *http.Request) {
-	t, err := template.New("foodle").Parse(foodle)
+	t, err := template.New("foodle").Parse(Files["static/index.html"]) 
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 	}
@@ -215,12 +128,7 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		name := strings.TrimSpace(getCookieValue(r, "name"))
-		token := getCookieValue(r, "token")
-		if len(token) != 32 {
-			token = randomString(32)
-		}
-		http.SetCookie(w, &http.Cookie{Name: "token", Value: token, HttpOnly: true})
-		res := Result{Name: name, Votes: votes, MostUsed: getMostUsedValue(votes), Token: token}
+		res := Result{Name: name, Votes: votes, MostUsed: getMostUsedValue(votes)}
 		if err := t.ExecuteTemplate(w, "T", res); err != nil {
 			fmt.Printf("Error: %s\n", err.Error())
 		}

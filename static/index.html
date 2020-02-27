@@ -1,0 +1,99 @@
+{{define "T"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Foodle</title>
+    	<style>
+			body {
+				font-size: 20px;
+				background-color: #073642;
+				color: #EEE8D5;
+				font-family: sans-serif;
+			}
+
+			table {
+				border-collapse: collapse;
+				border: 1px solid;
+				font-size: 25px;
+				width: auto;
+				margin: 5px;
+			}
+
+			input {
+				font-size: 20px;
+				background-color: #073642;
+                                border-collapse: collapse;
+                                border: 1px solid;
+				color: #EEE8D5;
+				margin: 5px;
+			}
+
+                        input[type=submit] {
+				color: #EEE8D5;
+				background-color: #073642;
+                                font-size: 25px;
+                                width: auto;
+                        }
+
+			input[type=submit]:hover {
+				background-color: #05262e;
+			}
+
+			th, td {
+				text-align: left;
+				padding: 8px;
+			}
+
+			a {
+ 				color: #EEE8D5;
+			}
+
+			tr:nth-child(even) {background-color: #05262e;}
+		</style>
+</head>
+
+<body>
+    <center>
+    	<div style="width:50%; height:auto;">
+	        <h1>Foodle</h1>
+	        {{if .Votes}}
+	        <h2>Most votes for: {{.MostUsed}}</h2>
+	        <table>
+	            <tr>
+	                <th>Name</th>
+	                <th>Food</th>
+	            </tr>
+	            {{range $key, $value := .Votes}}
+	            <tr>
+	                <td>{{$key}}</td>
+	                <td>{{if $.Name}}<a href='/vote?name={{$.Name}}&food={{$value}}'>{{$value}}</a>{{else}}{{$value}}{{end}}</td>
+	            </tr>
+	            {{end}}
+	        </table>
+	        {{else}}
+	        <h2>No votes yet</h2>
+	        {{end}}
+			<form action="/vote" method="GET">
+				<input name="name" type="text"{{if $.Name}} value="{{$.Name}}"{{end}} placeholder="your name"><br>
+				<input name="food" type="search" list="foods" placeholder="your fav food"><br>
+				<datalist id="foods">
+					<option value="Pizza" />
+					<option value="Burger" />
+					<option value="Thai" />
+					<option value="China Nudeln" />
+					<option value="Pho Co" />
+					<option value="Soy" />
+					<option value="Bibi Mix" />
+					<option value="Falafel" />
+					<option value="Döner" />
+					<option value="Mikrowelle" />
+				</datalist>
+				<input type="submit" value="Vote">
+			</form>
+		</div>
+    </center>
+</body>
+
+</html>
+{{end}}
