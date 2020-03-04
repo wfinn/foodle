@@ -15,15 +15,15 @@ func main() {
 }
 
 func GenerateStatic(filenames []string) []byte {
-	result := "//GENERATED - DON'T EDIT\npackage main\nvar Files = map[string]string{\n"
+	result := "//GENERATED - DON'T EDIT\npackage main\n\nvar Files = map[string]string{\n"
 	for _, filename := range filenames {
 		file, err := ioutil.ReadFile(filename)
 		if err == nil {
 			quoted := Quote(file)
-			result += fmt.Sprintf(`"%s": %s`, filename, quoted)
+			result += fmt.Sprintf(`	"%s": %s,`, filename, quoted)
 		}
 	}
-	return []byte(result + "}")
+	return []byte(result + "\n}\n")
 }
 
 func Quote(data []byte) string {
