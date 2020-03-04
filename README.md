@@ -13,6 +13,5 @@ You can add comments to your vote, statistics will still work (if you use the co
 
 Example: Beef Plz! (Burger)
 ## TODO
-- CSRF
 - locks on the .json files
 - whitelist for names

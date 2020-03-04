@@ -84,8 +84,8 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		} else {
 			secret := randomString(32)
 			users[name] = secret
-			http.SetCookie(w, &http.Cookie{Name: "name", Value: name, HttpOnly: true})
-			http.SetCookie(w, &http.Cookie{Name: "secret", Value: secret, HttpOnly: true})
+			http.SetCookie(w, &http.Cookie{Name: "name", Value: name, HttpOnly: true, SameSite: http.SameSiteStrictMode})
+			http.SetCookie(w, &http.Cookie{Name: "secret", Value: secret, HttpOnly: true, SameSite: http.SameSiteStrictMode})
 		}
 		votes[name] = food
 		writeJsonMap("users.json", users)
