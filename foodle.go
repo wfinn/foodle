@@ -147,10 +147,10 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	addr := flag.String("addr", ":8080", "addr to listen to")
+	port := flag.Int("p", 8080, "port to listen to")
 	flag.Parse()
 	rand.Seed(time.Now().UTC().UnixNano())
 	http.HandleFunc("/", handleAll())
 	http.HandleFunc("/vote", handleVote)
-	fmt.Println(http.ListenAndServe(*addr, nil))
+	fmt.Println(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
 }

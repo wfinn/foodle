@@ -25,5 +25,7 @@ When a user makes her first vote, her name will be tied to a secret cookie.
 Deleting the Cookie will result in losing the account.
 
 ## TODO
+- nicer errors
+- confirm use of cookeis and storage of data
 - locks on the .json files
 - character whitelist for names
