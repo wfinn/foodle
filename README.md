@@ -8,8 +8,11 @@ To add a static file edit _filenames_ in _static/genstatic.go_
 ## "Accounts"
 When a user makes her first vote, her name will be tied to a secret cookie.
 Deleting the Cookie will result in losing the "account".
+## Comments
+You can add comments to your vote, statistics will still work (if you use the correct syntax).
+
+Example: Beef Plz! (Burger)
 ## TODO
-- define a syntax for comments
 - CSRF
 - locks on the .json files
 - whitelist for names

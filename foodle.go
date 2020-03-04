@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -19,10 +20,20 @@ type Result struct {
 	MostUsed string
 }
 
+func extractFood(in string) string {
+	pat := regexp.MustCompile(` (.+)$`)
+	if pat.MatchString(in) {
+		match := pat.FindString(in)
+		return match[2 : len(match)-1]
+	}
+	return in
+}
+
 func getMostUsedValue(m map[string]string) (mostUsed string) {
 	counts := make(map[string]int)
 	for _, v := range m {
-		counts[v] = counts[v] + 1
+		food := extractFood(v)
+		counts[food] = counts[food] + 1
 	}
 	max := 0
 	for k := range counts {
@@ -111,7 +122,7 @@ func getCookieValue(r *http.Request, cookiename string) (value string) {
 }
 
 func handleAll() func(w http.ResponseWriter, r *http.Request) {
-	t, err := template.New("foodle").Parse(Files["static/index.html"]) 
+	t, err := template.New("foodle").Parse(Files["static/index.html"])
 	if err != nil {
 		fmt.Printf("Error: %s\n", err.Error())
 	}
