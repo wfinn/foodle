@@ -6,7 +6,7 @@ Simple app for daily votes, (hopefully) useful for deciding where to eat.
 go get github.com/wfinn/foodle
 ```
 ## Features
-**Comments**
+**Comments** (Experimental)
 
 You can add comments to your vote, statistics will still work (if you use the correct syntax).
 

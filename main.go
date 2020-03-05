@@ -64,6 +64,7 @@ func randomString(len int) string {
 func handleVote(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.URL.Query().Get("name"))
 	food := r.URL.Query().Get("food")
+	secret := ""
 	votes, err := readJsonMap(getVotesFilename())
 	if err != nil {
 		fmt.Println(err)
@@ -82,11 +83,11 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			secret := randomString(32)
+			secret = randomString(32)
 			users[name] = secret
-			http.SetCookie(w, &http.Cookie{Name: "name", Value: name, HttpOnly: true, SameSite: http.SameSiteStrictMode})
-			http.SetCookie(w, &http.Cookie{Name: "secret", Value: secret, HttpOnly: true, SameSite: http.SameSiteStrictMode})
 		}
+		http.SetCookie(w, &http.Cookie{Name: "name", Value: name, HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: 99999999})
+		http.SetCookie(w, &http.Cookie{Name: "secret", Value: secret, HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: 99999999})
 		votes[name] = food
 		writeJsonMap("users.json", users)
 		writeJsonMap(getVotesFilename(), votes)
