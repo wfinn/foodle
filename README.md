@@ -1,5 +1,5 @@
 # Foodle
-Maybe this helps to decide what to eat...
+Simple app for daily votes, (hopefully) useful for deciding where to eat.
 
 ## Installation
 ```
@@ -26,6 +26,6 @@ Deleting the Cookie will result in losing the account.
 
 ## TODO
 - nicer errors
-- confirm use of cookeis and storage of data
+- confirm use of cookies and storage of data
 - locks on the .json files
 - character whitelist for names

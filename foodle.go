@@ -21,7 +21,7 @@ type Result struct {
 }
 
 func extractFood(in string) string {
-	pat := regexp.MustCompile(` (.+)$`)
+	pat := regexp.MustCompile(` \(.+\)$`)
 	if pat.MatchString(in) {
 		match := pat.FindString(in)
 		return match[2 : len(match)-1]
