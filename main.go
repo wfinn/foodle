@@ -20,6 +20,10 @@ type Result struct {
 	MostUsed string
 }
 
+func newCookie(name, value string) *http.Cookie {
+	return &http.Cookie{Name: name, Value: value, HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: 99999999}
+}
+
 func extractFood(in string) string {
 	pat := regexp.MustCompile(` \(.+\)$`)
 	if pat.MatchString(in) {
@@ -32,7 +36,7 @@ func extractFood(in string) string {
 func getMostUsedValue(m map[string]string) (mostUsed string) {
 	counts := make(map[string]int)
 	for _, v := range m {
-		food := extractFood(v)
+		food := extractFood(v) // getMostUsedValue should only get the most used value, not parse comments
 		counts[food] = counts[food] + 1
 	}
 	max := 0
@@ -86,8 +90,8 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 			secret = randomString(32)
 			users[name] = secret
 		}
-		http.SetCookie(w, &http.Cookie{Name: "name", Value: name, HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: 99999999})
-		http.SetCookie(w, &http.Cookie{Name: "secret", Value: secret, HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: 99999999})
+		http.SetCookie(w, newCookie("name", name))
+		http.SetCookie(w, newCookie("secret", secret))
 		votes[name] = food
 		writeJsonMap("users.json", users)
 		writeJsonMap(getVotesFilename(), votes)
