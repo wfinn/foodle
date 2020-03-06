@@ -24,13 +24,14 @@ func newCookie(name, value string) *http.Cookie {
 	return &http.Cookie{Name: name, Value: value, HttpOnly: true, SameSite: http.SameSiteStrictMode, MaxAge: 99999999}
 }
 
-func extractFood(in string) string {
+func extractFood(in string) (out string) {
+	out = in
 	pat := regexp.MustCompile(` \(.+\)$`)
 	if pat.MatchString(in) {
 		match := pat.FindString(in)
-		return match[2 : len(match)-1]
+		out = match[2 : len(match)-1]
 	}
-	return in
+	return
 }
 
 func getMostUsedValue(m map[string]string) (mostUsed string) {
@@ -79,23 +80,26 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	if len(name) > 0 && len(food) > 0 {
-		if len(users[name]) > 0 {
-			secretCookie, err := r.Cookie("secret")
-			if err != nil || len(secretCookie.Value) == 0 || secretCookie.Value != users[name] {
-				http.Error(w, "secret is incorrect / name already taken", http.StatusForbidden)
-				return
-			}
-		} else {
-			secret = randomString(32)
-			users[name] = secret
-		}
-		http.SetCookie(w, newCookie("name", name))
-		http.SetCookie(w, newCookie("secret", secret))
-		votes[name] = food
-		writeJsonMap("users.json", users)
-		writeJsonMap(getVotesFilename(), votes)
+	if len(name) < 1 || len(food) < 1 {
+		http.Error(w, "name or food was missing", http.StatusForbidden)
+		return
 	}
+	if len(users[name]) > 0 {
+		secretCookie, err := r.Cookie("secret")
+		if err != nil || len(secretCookie.Value) < 1 || secretCookie.Value != users[name] {
+			http.Error(w, "secret is incorrect / name already taken", http.StatusForbidden)
+			return
+		}
+		secret = secretCookie.Value
+	} else {
+		secret = randomString(32)
+		users[name] = secret
+	}
+	http.SetCookie(w, newCookie("name", name))
+	http.SetCookie(w, newCookie("secret", secret))
+	votes[name] = food
+	writeJsonMap("users.json", users)
+	writeJsonMap(getVotesFilename(), votes)
 	http.Redirect(w, r, "/", http.StatusFound)
 }
 
