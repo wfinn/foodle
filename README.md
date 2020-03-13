@@ -6,6 +6,9 @@ Simple app for daily votes, (hopefully) useful for deciding where to eat.
 go get github.com/wfinn/foodle
 ```
 ## Features
+**Groups**
+Now there can be multiple votes at once, just go to /whatever to vote for whatever.
+
 **Comments** (Experimental)
 
 You can add comments to your vote, statistics will still work (if you use the correct syntax).
@@ -25,6 +28,7 @@ When a user makes her first vote, her name will be tied to a secret cookie.
 Deleting the Cookie will result in losing the account.
 
 ## TODO
+- only allow safe chars in group names
 - nicer errors
 - confirm use of cookies and storage of data
 - locks on the .json files

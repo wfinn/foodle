@@ -68,7 +68,7 @@
 	            {{range $key, $value := .Votes}}
 	            <tr>
 	                <td>{{$key}}</td>
-	                <td>{{if $.Name}}<a href='/vote?name={{$.Name}}&food={{$value}}'>{{$value}}</a>{{else}}{{$value}}{{end}}</td>
+	                <td>{{if $.Name}}<a href='/vote?name={{$.Name}}&food={{$value}}&group={{$.Group}}'>{{$value}}</a>{{else}}{{$value}}{{end}}</td>
 	            </tr>
 	            {{end}}
 	        </table>
@@ -91,6 +91,7 @@
 					<option value="Döner" />
 					<option value="Mikrowelle" />
 				</datalist>
+				<input type="hidden" name="group" value="{{$.Group}}"><br>
 				<input type="submit" value="Vote">
 			</form>
 		</div>

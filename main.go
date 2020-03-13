@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -18,6 +19,7 @@ type Result struct {
 	Name     string
 	Votes    map[string]string
 	MostUsed string
+	Group    string
 }
 
 func newCookie(name, value string) *http.Cookie {
@@ -54,8 +56,8 @@ func randInt(min, max int) int {
 	return min + rand.Intn(max-min)
 }
 
-func getVotesFilename() string {
-	return "votes-" + strings.Split(time.Now().String(), " ")[0] + ".json"
+func getVotesFilename(group string) string {
+	return "votes-" + group + "-" + strings.Split(time.Now().String(), " ")[0] + ".json"
 }
 
 func randomString(len int) string {
@@ -68,9 +70,10 @@ func randomString(len int) string {
 
 func handleVote(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.URL.Query().Get("name"))
+	group := r.URL.Query().Get("group")
 	food := r.URL.Query().Get("food")
 	secret := ""
-	votes, err := readJsonMap(getVotesFilename())
+	votes, err := readJsonMap(getVotesFilename(group))
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -99,8 +102,8 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, newCookie("secret", secret))
 	votes[name] = food
 	writeJsonMap("users.json", users)
-	writeJsonMap(getVotesFilename(), votes)
-	http.Redirect(w, r, "/", http.StatusFound)
+	writeJsonMap(getVotesFilename(group), votes)
+	http.Redirect(w, r, "/x/../" + group, http.StatusFound) // open redirects should be prevented by this (temporary bodge)
 }
 
 func readJsonMap(filename string) (map[string]string, error) {
@@ -136,19 +139,19 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Error: %s\n", err.Error())
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
+		group := url.QueryEscape(r.URL.EscapedPath())
 		if !strings.Contains(r.Header.Get("Accept"), "text/html") {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.Header().Set("X-Frame-Options", "DENY")
-		votes, err := readJsonMap(getVotesFilename())
+		votes, err := readJsonMap(getVotesFilename(group))
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
 		name := strings.TrimSpace(getCookieValue(r, "name"))
-		res := Result{Name: name, Votes: votes, MostUsed: getMostUsedValue(votes)}
+		res := Result{Name: name, Votes: votes, MostUsed: getMostUsedValue(votes), Group: group}
 		if err := t.ExecuteTemplate(w, "T", res); err != nil {
 			fmt.Printf("Error: %s\n", err.Error())
 		}
@@ -161,5 +164,5 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 	http.HandleFunc("/", handleAll())
 	http.HandleFunc("/vote", handleVote)
-	fmt.Println(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
+	http.ListenAndServe(fmt.Sprintf(":%d", *port), nil)
 }
