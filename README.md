@@ -5,9 +5,13 @@ Simple app for daily votes, (hopefully) useful for deciding where to eat.
 ```
 go get github.com/wfinn/foodle
 ```
-## Features
-**Groups**
-Now there can be multiple votes at once, just go to /whatever to vote for whatever.
+
+## Things
+**Groups** (Will be renamed)
+
+Now multiple groups can have different votes at the same time.
+
+Go to /yourgroup to vote for your group.
 
 **Comments** (Experimental)
 
@@ -25,11 +29,13 @@ To add a static file edit _filenames_ in _static/genstatic.go_
 **Accounts**
 
 When a user makes her first vote, her name will be tied to a secret cookie.
-Deleting the Cookie will result in losing the account.
+Deleting the cookie will result in losing the account.
 
-## TODO
-- only allow safe chars in group names
+## TODO (no order)
+- find a better word than group
 - nicer errors
+- landing page
 - confirm use of cookies and storage of data
 - locks on the .json files
 - character whitelist for names
+- https support

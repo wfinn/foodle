@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -70,7 +69,7 @@ func randomString(len int) string {
 
 func handleVote(w http.ResponseWriter, r *http.Request) {
 	name := strings.TrimSpace(r.URL.Query().Get("name"))
-	group := r.URL.Query().Get("group")
+	group := getGroupname(r.URL.Query().Get("group"))
 	food := r.URL.Query().Get("food")
 	secret := ""
 	votes, err := readJsonMap(getVotesFilename(group))
@@ -103,7 +102,16 @@ func handleVote(w http.ResponseWriter, r *http.Request) {
 	votes[name] = food
 	writeJsonMap("users.json", users)
 	writeJsonMap(getVotesFilename(group), votes)
-	http.Redirect(w, r, "/x/../" + group, http.StatusFound) // open redirects should be prevented by this (temporary bodge)
+	http.Redirect(w, r, group, http.StatusFound) 
+}
+
+func getGroupname(group string) string {
+	reg, err := regexp.Compile("[^a-zA-Z0-9-]+")
+	if err != nil {
+		return ""
+		//can this even happen?
+	}
+	return reg.ReplaceAllString(group, "")
 }
 
 func readJsonMap(filename string) (map[string]string, error) {
@@ -139,7 +147,7 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Error: %s\n", err.Error())
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		group := url.QueryEscape(r.URL.EscapedPath())
+		group := getGroupname(r.URL.EscapedPath())
 		if !strings.Contains(r.Header.Get("Accept"), "text/html") {
 			return
 		}
