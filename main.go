@@ -167,7 +167,7 @@ func handleAll() func(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	port := flag.Int("p", 8080, "port to listen to")
+	port := flag.Uint("p", 8080, "port to listen to")
 	flag.Parse()
 	rand.Seed(time.Now().UTC().UnixNano())
 	http.HandleFunc("/", handleAll())
